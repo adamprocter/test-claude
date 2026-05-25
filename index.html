@@ -5,305 +5,763 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Totton Crossing Alerts</title>
   <style>
-    :root { --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--blue:#3b82f6; }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem;}
-    #setup-screen{max-width:480px;margin:2rem auto;display:none;}
-    #setup-screen h1{font-size:1.4rem;font-weight:700;margin-bottom:0.25rem;}
-    #setup-screen .sub{color:var(--muted);font-size:0.85rem;margin-bottom:2rem;}
-    .step{background:var(--surface);border:1px solid var(--border);border-radius:0.75rem;padding:1rem 1.25rem;margin-bottom:1rem;}
-    .step-num{display:inline-block;background:var(--blue);color:#fff;font-size:0.7rem;font-weight:700;width:1.4rem;height:1.4rem;border-radius:50%;text-align:center;line-height:1.4rem;margin-right:0.5rem;vertical-align:middle;}
-    .step-title{font-weight:600;font-size:0.9rem;}
-    .step-body{color:var(--muted);font-size:0.82rem;margin-top:0.5rem;line-height:1.5;}
-    .step-body a{color:var(--blue);}
-    .field-group{display:flex;flex-direction:column;gap:0.75rem;margin-top:1rem;}
-    .field-group label{font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.25rem;}
-    .field-group input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:0.5rem;color:var(--text);padding:0.6rem 0.75rem;font-size:0.875rem;font-family:monospace;}
-    .field-group input:focus{outline:none;border-color:var(--blue);}
-    #setup-error{background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:0.5rem;padding:0.6rem 0.75rem;color:var(--red);font-size:0.82rem;margin-top:0.75rem;display:none;}
-    .btn-primary{width:100%;background:var(--blue);color:#fff;border:none;border-radius:0.5rem;padding:0.7rem 1rem;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:1rem;}
-    .btn-primary:hover{opacity:0.9;} .btn-primary:disabled{opacity:0.5;cursor:default;}
-    #app{display:none;}
-    header{text-align:center;margin-bottom:1.5rem;}
-    header h1{font-size:1.5rem;font-weight:700;letter-spacing:-0.02em;}
-    header p{color:var(--muted);font-size:0.85rem;margin-top:0.25rem;}
-    #clock{text-align:center;font-size:2.5rem;font-weight:700;letter-spacing:0.05em;margin-bottom:1.25rem;font-variant-numeric:tabular-nums;}
-    #status-banner{border-radius:1rem;padding:1.1rem 1.5rem;text-align:center;margin-bottom:1.25rem;transition:background 0.4s,border-color 0.4s;border:2px solid transparent;}
-    #status-banner.green{background:rgba(34,197,94,0.15);border-color:var(--green);}
-    #status-banner.amber{background:rgba(245,158,11,0.15);border-color:var(--amber);}
-    #status-banner.red{background:rgba(239,68,68,0.15);border-color:var(--red);}
-    #status-icon{font-size:2rem;} #status-label{font-size:1.15rem;font-weight:700;margin-top:0.2rem;}
-    #status-detail{font-size:0.85rem;color:var(--muted);margin-top:0.2rem;}
-    .section-card{background:var(--surface);border:1px solid var(--border);border-radius:0.75rem;padding:1rem 1.1rem;margin-bottom:1rem;}
-    .section-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.65rem;}
-    #timeline-wrap{position:relative;margin-bottom:0.4rem;}
-    #timeline-bar{height:10px;background:rgba(255,255,255,0.06);border-radius:99px;position:relative;overflow:hidden;}
-    .tl-closure{position:absolute;top:0;height:100%;background:var(--red);border-radius:99px;opacity:0.85;}
-    .tl-closure.soon{background:var(--amber);} .tl-closure.active{opacity:1;}
-    #tl-now{position:absolute;top:-3px;width:3px;height:16px;background:var(--text);border-radius:2px;transform:translateX(-50%);}
-    #timeline-ticks{display:flex;justify-content:space-between;margin-top:0.35rem;padding:0 1px;}
-    #timeline-ticks span{font-size:0.65rem;color:var(--muted);font-variant-numeric:tabular-nums;}
-    #no-trains-msg{text-align:center;color:var(--muted);font-size:0.82rem;padding:0.5rem 0;}
-    #closures-list{display:flex;flex-direction:column;gap:0.45rem;margin-top:0.75rem;}
-    .closure-row{display:grid;grid-template-columns:1.4rem 1fr auto auto;gap:0 0.5rem;align-items:center;font-size:0.82rem;}
-    .closure-dir{color:var(--muted);font-size:0.7rem;text-align:center;}
-    .closure-dest{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .closure-window{color:var(--muted);font-size:0.72rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
-    .closure-cd{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:4.5rem;text-align:right;}
-    .closure-cd.active{color:var(--red);} .closure-cd.soon{color:var(--amber);} .closure-cd.clear{color:var(--muted);}
-    #train-list{display:flex;flex-direction:column;gap:0.65rem;}
-    .train-card{background:var(--surface);border:1px solid var(--border);border-radius:0.75rem;padding:0.85rem 1rem;display:grid;grid-template-columns:1fr auto;gap:0.2rem 1rem;align-items:center;}
-    .train-card.active{border-color:var(--red);background:rgba(239,68,68,0.08);}
-    .train-card.warning{border-color:var(--amber);background:rgba(245,158,11,0.08);}
-    .train-dest{font-weight:600;font-size:0.92rem;} .train-meta{color:var(--muted);font-size:0.75rem;margin-top:0.1rem;}
-    .barrier-window{text-align:right;font-size:0.78rem;}
-    .barrier-time{font-weight:700;font-variant-numeric:tabular-nums;}
-    .barrier-label{color:var(--muted);font-size:0.7rem;margin-top:0.1rem;}
-    .barrier-label.closed{color:var(--red);} .barrier-label.soon{color:var(--amber);} .barrier-label.clear{color:var(--green);}
-    #error-msg{background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:0.75rem;padding:1rem;color:var(--red);font-size:0.85rem;margin-bottom:1rem;display:none;}
-    .toolbar{display:flex;justify-content:center;gap:0.5rem;margin-bottom:0.75rem;}
-    .btn-sm{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.35rem 0.85rem;border-radius:0.5rem;cursor:pointer;font-size:0.78rem;}
-    .btn-sm:hover{border-color:var(--muted);}
-    #last-updated{text-align:center;font-size:0.72rem;color:var(--muted);margin-bottom:0.85rem;}
-    footer{text-align:center;color:var(--muted);font-size:0.7rem;margin-top:2rem;}
+    :root {
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --blue: #3b82f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
+    }
+
+    /* ── Setup screen ─────────────────────────────────────────────────────── */
+    #setup-screen { max-width: 480px; margin: 2rem auto; display: none; }
+    #setup-screen h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
+    #setup-screen .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .step-num {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      width: 1.4rem; height: 1.4rem;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 1.4rem;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    .step-title { font-weight: 600; font-size: 0.9rem; }
+    .step-body { color: var(--muted); font-size: 0.82rem; margin-top: 0.5rem; line-height: 1.5; }
+    .step-body a { color: var(--blue); }
+
+    .field-group { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+    .field-group label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 0.25rem; }
+    .field-group input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--text);
+      padding: 0.6rem 0.75rem;
+      font-size: 0.875rem;
+      font-family: monospace;
+    }
+    .field-group input:focus { outline: none; border-color: var(--blue); }
+
+    #setup-error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid var(--red);
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.75rem;
+      color: var(--red);
+      font-size: 0.82rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.7rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+    /* ── Main app ─────────────────────────────────────────────────────────── */
+    #app { display: none; }
+
+    header { text-align: center; margin-bottom: 1.5rem; }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    header p { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+    #clock {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Status banner */
+    #status-banner {
+      border-radius: 1rem;
+      padding: 1.1rem 1.5rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      transition: background 0.4s, border-color 0.4s;
+      border: 2px solid transparent;
+    }
+    #status-banner.green { background: rgba(34,197,94,0.15);  border-color: var(--green); }
+    #status-banner.amber { background: rgba(245,158,11,0.15); border-color: var(--amber); }
+    #status-banner.red   { background: rgba(239,68,68,0.15);  border-color: var(--red); }
+    #status-icon  { font-size: 2rem; }
+    #status-label { font-size: 1.15rem; font-weight: 700; margin-top: 0.2rem; }
+    #status-detail { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* ── Next-hour timeline ───────────────────────────────────────────────── */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+
+    /* Timeline bar */
+    #timeline-wrap { position: relative; margin-bottom: 0.4rem; }
+    #timeline-bar {
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tl-closure {
+      position: absolute;
+      top: 0; height: 100%;
+      background: var(--red);
+      border-radius: 99px;
+      opacity: 0.85;
+    }
+    .tl-closure.soon { background: var(--amber); }
+    .tl-closure.active { opacity: 1; }
+    #tl-now {
+      position: absolute;
+      top: -3px;
+      width: 3px;
+      height: 16px;
+      background: var(--text);
+      border-radius: 2px;
+      transform: translateX(-50%);
+    }
+    #timeline-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.35rem;
+      padding: 0 1px;
+    }
+    #timeline-ticks span {
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Upcoming closures list */
+    #closures-list { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.75rem; }
+    .closure-row {
+      display: grid;
+      grid-template-columns: 1.4rem 1fr auto auto;
+      gap: 0 0.5rem;
+      align-items: center;
+      font-size: 0.82rem;
+    }
+    .closure-dir { color: var(--muted); font-size: 0.7rem; text-align: center; }
+    .closure-dest { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .closure-window { color: var(--muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .closure-cd {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      min-width: 4.5rem;
+      text-align: right;
+    }
+    .closure-cd.active { color: var(--red); }
+    .closure-cd.soon   { color: var(--amber); }
+    .closure-cd.clear  { color: var(--muted); }
+
+    #no-trains-msg {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 0.5rem 0;
+    }
+
+    /* ── Train cards ──────────────────────────────────────────────────────── */
+    #train-list { display: flex; flex-direction: column; gap: 0.65rem; }
+    .train-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.2rem 1rem;
+      align-items: center;
+    }
+    .train-card.active  { border-color: var(--red);   background: rgba(239,68,68,0.08); }
+    .train-card.warning { border-color: var(--amber);  background: rgba(245,158,11,0.08); }
+    .train-dest { font-weight: 600; font-size: 0.92rem; }
+    .train-meta { color: var(--muted); font-size: 0.75rem; margin-top: 0.1rem; }
+    .barrier-window { text-align: right; font-size: 0.78rem; }
+    .barrier-time { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .barrier-label { color: var(--muted); font-size: 0.7rem; margin-top: 0.1rem; }
+    .barrier-label.closed { color: var(--red); }
+    .barrier-label.soon   { color: var(--amber); }
+    .barrier-label.clear  { color: var(--green); }
+
+    #error-msg {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid var(--red);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      color: var(--red);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .btn-sm {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.35rem 0.85rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+    .btn-sm:hover { border-color: var(--muted); }
+
+    #last-updated { text-align: center; font-size: 0.72rem; color: var(--muted); margin-bottom: 0.85rem; }
+
+    footer { text-align: center; color: var(--muted); font-size: 0.7rem; margin-top: 2rem; }
   </style>
 </head>
 <body>
 
+<!-- ── Setup screen ──────────────────────────────────────────────────────── -->
 <div id="setup-screen">
   <h1>Totton Crossing Alerts</h1>
   <p class="sub">One-time setup — your keys are saved locally in this browser only.</p>
-  <div class="step"><span class="step-num">1</span><span class="step-title">Create a free Transport API account</span>
-    <div class="step-body">Go to <a href="https://developer.transportapi.com/signup" target="_blank" rel="noopener">developer.transportapi.com/signup</a> and register for a free account (1,000 calls/day — more than enough).</div></div>
-  <div class="step"><span class="step-num">2</span><span class="step-title">Copy your App ID and App Key</span>
-    <div class="step-body">After signing in, your credentials are on the dashboard under <strong>My Apps</strong>. You’ll see an <em>App ID</em> and an <em>App Key</em>.</div></div>
-  <div class="step"><span class="step-num">3</span><span class="step-title">Paste them below</span>
+
+  <div class="step">
+    <span class="step-num">1</span>
+    <span class="step-title">Create a free Transport API account</span>
+    <div class="step-body">
+      Go to <a href="https://developer.transportapi.com/signup" target="_blank" rel="noopener">developer.transportapi.com/signup</a>
+      and register for a free account (1,000 calls/day — more than enough).
+    </div>
+  </div>
+
+  <div class="step">
+    <span class="step-num">2</span>
+    <span class="step-title">Copy your App ID and App Key</span>
+    <div class="step-body">
+      After signing in, your credentials are on the dashboard under
+      <strong>My Apps</strong>. You'll see an <em>App ID</em> and an <em>App Key</em>.
+    </div>
+  </div>
+
+  <div class="step">
+    <span class="step-num">3</span>
+    <span class="step-title">Paste them below</span>
     <div class="field-group">
-      <div><label for="input-app-id">App ID</label><input id="input-app-id" type="text" placeholder="e.g. a1b2c3d4" autocomplete="off" spellcheck="false"/></div>
-      <div><label for="input-app-key">App Key</label><input id="input-app-key" type="text" placeholder="e.g. a1b2c3d4e5f6..." autocomplete="off" spellcheck="false"/></div>
+      <div>
+        <label for="input-app-id">App ID</label>
+        <input id="input-app-id" type="text" placeholder="e.g. a1b2c3d4" autocomplete="off" spellcheck="false" />
+      </div>
+      <div>
+        <label for="input-app-key">App Key</label>
+        <input id="input-app-key" type="text" placeholder="e.g. a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4" autocomplete="off" spellcheck="false" />
+      </div>
     </div>
     <div id="setup-error"></div>
     <button class="btn-primary" id="setup-btn" onclick="saveCredentials()">Save &amp; Open App</button>
   </div>
 </div>
 
+<!-- ── Main app ──────────────────────────────────────────────────────────── -->
 <div id="app">
-  <header><h1>Totton Crossing Alerts</h1><p>Commercial Road level crossing &mdash; Totton Station, Hampshire</p></header>
+  <header>
+    <h1>Totton Crossing Alerts</h1>
+    <p>Commercial Road level crossing &mdash; Totton Station, Hampshire</p>
+  </header>
+
   <div id="clock">--:--:--</div>
+
   <div id="status-banner" class="green">
-    <div id="status-icon">✅</div><div id="status-label">Loading...</div><div id="status-detail">Fetching live train data</div>
+    <div id="status-icon">✅</div>
+    <div id="status-label">Loading...</div>
+    <div id="status-detail">Fetching live train data</div>
   </div>
+
+  <!-- Next-hour overview -->
   <div class="section-card">
     <div class="section-label">Next 60 minutes</div>
-    <div id="timeline-wrap"><div id="timeline-bar"><div id="tl-now"></div></div><div id="timeline-ticks"></div></div>
+
+    <div id="timeline-wrap">
+      <div id="timeline-bar">
+        <div id="tl-now"></div>
+      </div>
+      <div id="timeline-ticks"></div>
+    </div>
+
     <div id="no-trains-msg">Loading train data…</div>
     <div id="closures-list"></div>
   </div>
+
   <div id="error-msg"></div>
+
   <div class="section-label" style="padding-left:0.25rem;margin-bottom:0.5rem">Upcoming trains</div>
   <div id="train-list"></div>
+
   <div class="toolbar" style="margin-top:1.25rem">
     <button class="btn-sm" onclick="refresh()">&#8635; Refresh</button>
     <button class="btn-sm" onclick="resetCredentials()">&#9881; Change API keys</button>
   </div>
   <div id="last-updated"></div>
-  <footer>Data: Transport API &bull; Barriers estimated ±2 min around scheduled time<br>Auto-refreshes every 60 seconds &bull; Not for safety-critical use</footer>
+
+  <footer>
+    Data: Transport API &bull; Barriers estimated ±2&thinsp;min around scheduled time<br>
+    Auto-refreshes every 60 seconds &bull; Not for safety-critical use
+  </footer>
 </div>
 
 <script>
-  const STATION='TTN',BARRIER_BEFORE=2*60*1000,BARRIER_AFTER=2*60*1000,WARN_WINDOW=5*60*1000,TIMELINE_MINS=60;
-  const STORAGE_ID='tapi_app_id',STORAGE_KEY='tapi_app_key';
-  let trainEvents=[],refreshTimer=null;
+  // ── Config ─────────────────────────────────────────────────────────────────
+  const STATION        = 'TTN';
+  const BARRIER_BEFORE = 2 * 60 * 1000;
+  const BARRIER_AFTER  = 2 * 60 * 1000;
+  const WARN_WINDOW    = 5 * 60 * 1000;
+  const TIMELINE_MINS  = 60;
+  const STORAGE_ID     = 'tapi_app_id';
+  const STORAGE_KEY    = 'tapi_app_key';
 
-  function getCredentials(){return{appId:localStorage.getItem(STORAGE_ID)||'',appKey:localStorage.getItem(STORAGE_KEY)||''};}
+  let trainEvents  = [];
+  let refreshTimer = null;
 
-  function saveCredentials(){
-    const btn=document.getElementById('setup-btn'),errEl=document.getElementById('setup-error');
-    const appId=document.getElementById('input-app-id').value.trim(),appKey=document.getElementById('input-app-key').value.trim();
-    errEl.style.display='none';
-    if(!appId||!appKey){errEl.textContent='Please enter both your App ID and App Key.';errEl.style.display='block';return;}
-    btn.disabled=true;btn.textContent='Verifying…';
-    fetch(buildUrl(appId,appKey))
-      .then(r=>{if(r.status===403)throw new Error('Invalid credentials — check your App ID and App Key.');if(!r.ok)throw new Error(`API returned ${r.status}`);return r.json();})
-      .then(()=>{localStorage.setItem(STORAGE_ID,appId);localStorage.setItem(STORAGE_KEY,appKey);showApp();})
-      .catch(err=>{errEl.textContent='⚠ '+err.message;errEl.style.display='block';btn.disabled=false;btn.textContent='Save & Open App';});
-  }
-
-  function resetCredentials(){
-    localStorage.removeItem(STORAGE_ID);localStorage.removeItem(STORAGE_KEY);clearTimeout(refreshTimer);
-    document.getElementById('app').style.display='none';
-    document.getElementById('setup-screen').style.display='block';
-    ['input-app-id','input-app-key'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('setup-error').style.display='none';
-    document.getElementById('setup-btn').disabled=false;
-    document.getElementById('setup-btn').textContent='Save & Open App';
+  // ── Credentials ────────────────────────────────────────────────────────────
+  function getCredentials() {
+    return {
+      appId:  localStorage.getItem(STORAGE_ID)  || '',
+      appKey: localStorage.getItem(STORAGE_KEY) || '',
+    };
   }
 
-  function showApp(){
-    document.getElementById('setup-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    setInterval(tickClock,1000);tickClock();refresh();
-  }
+  function saveCredentials() {
+    const btn    = document.getElementById('setup-btn');
+    const errEl  = document.getElementById('setup-error');
+    const appId  = document.getElementById('input-app-id').value.trim();
+    const appKey = document.getElementById('input-app-key').value.trim();
 
-  function buildUrl(appId,appKey){
-    return`https://transportapi.com/v3/uk/train/station/${STATION}/live.json?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}&train_status=passenger&type=arrival%2Cdeparture&to_offset=PT02:00:00`;
-  }
-
-  async function fetchTrains(){
-    const{appId,appKey}=getCredentials();
-    const res=await fetch(buildUrl(appId,appKey));
-    if(res.status===403)throw new Error('API credentials rejected — use “Change API keys” to update them.');
-    if(!res.ok)throw new Error(`Transport API returned ${res.status}`);
-    const data=await res.json();
-    const rawDeps=(data.departures?.all||[]).length;
-    const rawArrs=(data.arrivals?.all||[]).length;
-    window._apiDiag={stationName:data.station_name||data.name||'?',rawDeps,rawArrs};
-    const events=[];
-    function parseServices(services,type){
-      for(const svc of(services||[])){
-        const aimedStr=type==='departure'?svc.aimed_departure_time:svc.aimed_arrival_time;
-        const expectedStr=type==='departure'?svc.expected_departure_time:svc.expected_arrival_time;
-        const useStr=(expectedStr&&expectedStr!=='On time'&&expectedStr!=='Cancelled'&&/^\d{2}:\d{2}$/.test(expectedStr))?expectedStr:aimedStr;
-        const trainTime=parseTime(useStr);
-        if(!trainTime)continue;
-        const cancelled=svc.status==='CANCELLED'||expectedStr==='Cancelled';
-        const dest=type==='departure'?(svc.destination_name||'Unknown'):(svc.origin_name||'Unknown');
-        events.push({trainTime,dest,operator:svc.operator_name||svc.operator||'',platform:svc.platform||'?',type,cancelled});
-      }
-    }
-    parseServices(data.departures?.all,'departure');
-    parseServices(data.arrivals?.all,'arrival');
-    const seen=new Set();
-    const unique=events.filter(e=>{const key=`${Math.round(e.trainTime/60000)}-${e.dest}`;if(seen.has(key))return false;seen.add(key);return true;});
-    unique.sort((a,b)=>a.trainTime-b.trainTime);
-    const now=Date.now();
-    return unique.filter(e=>e.trainTime.getTime()+BARRIER_AFTER>now);
-  }
-
-  function parseTime(hhmm){
-    if(!hhmm||!/^\d{2}:\d{2}$/.test(hhmm))return null;
-    const[h,m]=hhmm.split(':').map(Number);
-    const d=new Date();d.setHours(h,m,0,0);
-    if(d<Date.now()-60*60*1000)d.setDate(d.getDate()+1);
-    return d;
-  }
-  function fmtTime(date){if(!date)return'?';return date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
-  function fmtCountdown(ms){
-    if(ms<=0)return null;
-    const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60);
-    if(h>0)return`${h}h ${String(m%60).padStart(2,'0')}m`;
-    if(m>0)return`${m}m ${String(s%60).padStart(2,'0')}s`;
-    return`${s}s`;
-  }
-  function annotate(events){
-    const now=Date.now();
-    return events.map(e=>{
-      const t=e.trainTime.getTime(),closeAt=t-BARRIER_BEFORE,openAt=t+BARRIER_AFTER;
-      const msUntilClose=closeAt-now;
-      const phase=now<closeAt?'clear':now<openAt?'closed':'open';
-      return{...e,closeAt,openAt,msUntilClose,phase};
-    });
-  }
-  function renderTimeline(annotated){
-    const now=Date.now(),endMs=now+TIMELINE_MINS*60*1000,spanMs=TIMELINE_MINS*60*1000;
-    const bar=document.getElementById('timeline-bar');
-    bar.querySelectorAll('.tl-closure').forEach(el=>el.remove());
-    for(const e of annotated){
-      if(e.cancelled)continue;
-      const closeAt=Math.max(e.closeAt,now),openAt=Math.min(e.openAt,endMs);
-      if(closeAt>=endMs||openAt<=now)continue;
-      const leftPct=((closeAt-now)/spanMs)*100,widthPct=((openAt-closeAt)/spanMs)*100;
-      const seg=document.createElement('div');
-      seg.className='tl-closure'+(e.phase==='closed'?' active':e.msUntilClose<=WARN_WINDOW?' soon':'');
-      seg.style.left=leftPct+'%';seg.style.width=Math.max(widthPct,0.8)+'%';
-      bar.appendChild(seg);
-    }
-    const ticks=document.getElementById('timeline-ticks');ticks.innerHTML='';
-    for(let i=0;i<=4;i++){const sp=document.createElement('span');sp.textContent=fmtTime(new Date(now+i*15*60*1000));ticks.appendChild(sp);}
-  }
-  function renderClosuresList(annotated){
-    const now=Date.now(),horizon=now+TIMELINE_MINS*60*1000;
-    const list=document.getElementById('closures-list'),noMsg=document.getElementById('no-trains-msg');
-    if(!list||!noMsg)return;
-    const visible=annotated.filter(e=>!e.cancelled&&e.phase!=='open'&&e.closeAt<horizon);
-    if(visible.length===0){
-      list.innerHTML='';noMsg.style.display='block';
-      const later=annotated.filter(e=>!e.cancelled&&e.phase!=='open');
-      if(annotated.length===0)noMsg.textContent='No train data loaded yet — fetching…';
-      else if(later.length>0)noMsg.textContent=`No closures in the next hour — next train at ${fmtTime(later[0].trainTime)} (${later.length} train${later.length>1?'s':''} loaded)`;
-      else noMsg.textContent=`All ${annotated.length} loaded train${annotated.length>1?'s':''} have passed — refreshing shortly`;
+    errEl.style.display = 'none';
+    if (!appId || !appKey) {
+      errEl.textContent = 'Please enter both your App ID and App Key.';
+      errEl.style.display = 'block';
       return;
     }
-    noMsg.style.display='none';list.innerHTML='';
-    for(const e of visible){
-      const row=document.createElement('div');row.className='closure-row';
-      let cdClass='clear',cdText=fmtCountdown(e.msUntilClose)||'—';
-      if(e.phase==='closed'){cdClass='active';cdText='NOW';}
-      else if(e.msUntilClose<=WARN_WINDOW)cdClass='soon';
-      row.innerHTML=`<span class="closure-dir">${e.type==='departure'?'▶':'◀'}</span><span class="closure-dest">${e.dest}</span><span class="closure-window">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</span><span class="closure-cd ${cdClass}">${cdText}</span>`;
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+
+    fetch(buildUrl(appId, appKey))
+      .then(r => {
+        if (r.status === 403) throw new Error('Invalid credentials — check your App ID and App Key.');
+        if (!r.ok) throw new Error(`API returned ${r.status}. Try again shortly.`);
+        return r.json();
+      })
+      .then(() => {
+        localStorage.setItem(STORAGE_ID,  appId);
+        localStorage.setItem(STORAGE_KEY, appKey);
+        showApp();
+      })
+      .catch(err => {
+        errEl.textContent = '⚠ ' + err.message;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Save & Open App';
+      });
+  }
+
+  function resetCredentials() {
+    localStorage.removeItem(STORAGE_ID);
+    localStorage.removeItem(STORAGE_KEY);
+    clearTimeout(refreshTimer);
+    document.getElementById('app').style.display          = 'none';
+    document.getElementById('setup-screen').style.display = 'block';
+    document.getElementById('input-app-id').value  = '';
+    document.getElementById('input-app-key').value = '';
+    document.getElementById('setup-error').style.display  = 'none';
+    document.getElementById('setup-btn').disabled         = false;
+    document.getElementById('setup-btn').textContent      = 'Save & Open App';
+  }
+
+  function showApp() {
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app').style.display          = 'block';
+    setInterval(tickClock, 1000);
+    tickClock();
+    refresh();
+  }
+
+  // ── API ────────────────────────────────────────────────────────────────────
+  function liveUrl(appId, appKey) {
+    return `https://transportapi.com/v3/uk/train/station/${STATION}/live.json` +
+           `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
+           `&train_status=passenger&type=arrival%2Cdeparture&to_offset=PT02:00:00`;
+  }
+
+  function timetableUrl(appId, appKey, type) {
+    const now  = new Date();
+    const date = now.toISOString().slice(0, 10);
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    return `https://transportapi.com/v3/uk/train/station/${STATION}/${date}/${time}/timetable.json` +
+           `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
+           `&train_status=passenger&type=${type}&to_offset=PT02:00:00`;
+  }
+
+  async function fetchTrains() {
+    const { appId, appKey } = getCredentials();
+
+    // 1. Try the live board first
+    const liveRes = await fetch(liveUrl(appId, appKey));
+    if (liveRes.status === 403) throw new Error('API credentials rejected — use "Change API keys" to update them.');
+    if (!liveRes.ok) throw new Error(`Transport API returned ${liveRes.status}`);
+    const liveData = await liveRes.json();
+
+    let combined = liveData;
+    let source   = 'live';
+
+    // 2. Live board empty for this station — fall back to scheduled timetable
+    const liveCount = (liveData.departures?.all || []).length + (liveData.arrivals?.all || []).length;
+    if (liveCount === 0) {
+      const [depRes, arrRes] = await Promise.all([
+        fetch(timetableUrl(appId, appKey, 'departure')),
+        fetch(timetableUrl(appId, appKey, 'arrival')),
+      ]);
+      const depData = depRes.ok ? await depRes.json() : {};
+      const arrData = arrRes.ok ? await arrRes.json() : {};
+      combined = {
+        station_name: depData.station_name || arrData.station_name || liveData.station_name,
+        departures:   depData.departures   || { all: [] },
+        arrivals:     arrData.arrivals     || { all: [] },
+      };
+      source = 'timetable';
+    }
+
+    const rawDeps = (combined.departures?.all || []).length;
+    const rawArrs = (combined.arrivals?.all   || []).length;
+    window._apiDiag = {
+      stationName: combined.station_name || '?',
+      rawDeps,
+      rawArrs,
+      source,
+    };
+
+    const events = [];
+
+    function parseServices(services, type) {
+      for (const svc of (services || [])) {
+        const aimedStr    = type === 'departure' ? svc.aimed_departure_time    : svc.aimed_arrival_time;
+        const expectedStr = type === 'departure' ? svc.expected_departure_time : svc.expected_arrival_time;
+        // For timetable responses there may be no expected time — fall back to aimed
+        const useStr = (expectedStr && expectedStr !== 'On time' && expectedStr !== 'Cancelled' && /^\d{2}:\d{2}$/.test(expectedStr))
+          ? expectedStr : aimedStr;
+        const trainTime = parseTime(useStr);
+        if (!trainTime) continue;
+        const cancelled = svc.status === 'CANCELLED' || expectedStr === 'Cancelled';
+        const dest = type === 'departure'
+          ? (svc.destination_name || 'Unknown')
+          : (svc.origin_name      || 'Unknown');
+        events.push({ trainTime, dest, operator: svc.operator_name || svc.operator || '', platform: svc.platform || '?', type, cancelled });
+      }
+    }
+
+    parseServices(combined.departures?.all, 'departure');
+    parseServices(combined.arrivals?.all,   'arrival');
+
+    // Deduplicate by minute + endpoint
+    const seen   = new Set();
+    const unique = events.filter(e => {
+      const key = `${Math.round(e.trainTime / 60000)}-${e.dest}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    unique.sort((a, b) => a.trainTime - b.trainTime);
+
+    const now = Date.now();
+    return unique.filter(e => e.trainTime.getTime() + BARRIER_AFTER > now);
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function parseTime(hhmm) {
+    if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    if (d < Date.now() - 60 * 60 * 1000) d.setDate(d.getDate() + 1);
+    return d;
+  }
+
+  function fmtTime(date) {
+    if (!date) return '?';
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function fmtCountdown(ms) {
+    if (ms <= 0) return null;
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    if (h > 0) return `${h}h ${String(m % 60).padStart(2,'0')}m`;
+    if (m > 0) return `${m}m ${String(s % 60).padStart(2,'0')}s`;
+    return `${s}s`;
+  }
+
+  // Annotate each event with barrier window and phase
+  function annotate(events) {
+    const now = Date.now();
+    return events.map(e => {
+      const t            = e.trainTime.getTime();
+      const closeAt      = t - BARRIER_BEFORE;
+      const openAt       = t + BARRIER_AFTER;
+      const msUntilClose = closeAt - now;
+      const phase        = now < closeAt ? 'clear' : now < openAt ? 'closed' : 'open';
+      return { ...e, closeAt, openAt, msUntilClose, phase };
+    });
+  }
+
+  // ── Timeline render ────────────────────────────────────────────────────────
+  function renderTimeline(annotated) {
+    const now     = Date.now();
+    const endMs   = now + TIMELINE_MINS * 60 * 1000;
+    const spanMs  = TIMELINE_MINS * 60 * 1000;
+    const bar     = document.getElementById('timeline-bar');
+
+    // Remove old closures, keep the now-marker
+    bar.querySelectorAll('.tl-closure').forEach(el => el.remove());
+
+    // Draw closure segments visible within the window
+    for (const e of annotated) {
+      if (e.cancelled) continue;
+      const closeAt = Math.max(e.closeAt, now);
+      const openAt  = Math.min(e.openAt,  endMs);
+      if (closeAt >= endMs || openAt <= now) continue;
+
+      const leftPct  = ((closeAt - now) / spanMs) * 100;
+      const widthPct = ((openAt - closeAt) / spanMs) * 100;
+
+      const seg = document.createElement('div');
+      seg.className = 'tl-closure' +
+        (e.phase === 'closed' ? ' active' : e.msUntilClose <= WARN_WINDOW ? ' soon' : '');
+      seg.style.left  = leftPct  + '%';
+      seg.style.width = Math.max(widthPct, 0.8) + '%';
+      bar.appendChild(seg);
+    }
+
+    // Tick labels: now, +15, +30, +45, +60
+    const ticks = document.getElementById('timeline-ticks');
+    ticks.innerHTML = '';
+    for (let i = 0; i <= 4; i++) {
+      const t   = new Date(now + i * 15 * 60 * 1000);
+      const sp  = document.createElement('span');
+      sp.textContent = fmtTime(t);
+      ticks.appendChild(sp);
+    }
+  }
+
+  // ── Closures list render ───────────────────────────────────────────────────
+  function renderClosuresList(annotated) {
+    const now     = Date.now();
+    const horizon = now + TIMELINE_MINS * 60 * 1000;
+    const list    = document.getElementById('closures-list');
+    const noMsg   = document.getElementById('no-trains-msg');
+    if (!list || !noMsg) return;
+
+    // Include events that are active or will start within the hour
+    const visible = annotated.filter(e =>
+      !e.cancelled &&
+      e.phase !== 'open' &&
+      e.closeAt < horizon
+    );
+
+    if (visible.length === 0) {
+      const later = annotated.filter(e => !e.cancelled && e.phase !== 'open');
+      list.innerHTML = '';
+      noMsg.style.display = 'block';
+      if (annotated.length === 0) {
+        noMsg.textContent = 'No train data loaded yet — fetching…';
+      } else if (later.length > 0) {
+        noMsg.textContent = `No closures in the next hour — next train at ${fmtTime(later[0].trainTime)} (${later.length} train${later.length > 1 ? 's' : ''} loaded)`;
+      } else {
+        noMsg.textContent = `All ${annotated.length} loaded train${annotated.length > 1 ? 's' : ''} have passed — refreshing shortly`;
+      }
+      return;
+    }
+
+    noMsg.style.display = 'none';
+    list.innerHTML = '';
+
+    for (const e of visible) {
+      const row = document.createElement('div');
+      row.className = 'closure-row';
+
+      let cdClass = 'clear';
+      let cdText  = fmtCountdown(e.msUntilClose) || '—';
+      if (e.phase === 'closed') { cdClass = 'active'; cdText = 'NOW'; }
+      else if (e.msUntilClose <= WARN_WINDOW) { cdClass = 'soon'; }
+
+      row.innerHTML = `
+        <span class="closure-dir">${e.type === 'departure' ? '▶' : '◀'}</span>
+        <span class="closure-dest">${e.dest}</span>
+        <span class="closure-window">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</span>
+        <span class="closure-cd ${cdClass}">${cdText}</span>
+      `;
       list.appendChild(row);
     }
   }
-  function renderBanner(annotated){
-    const activeClosures=annotated.filter(e=>e.phase==='closed'&&!e.cancelled);
-    const imminent=annotated.filter(e=>e.phase==='clear'&&!e.cancelled&&e.msUntilClose<=WARN_WINDOW&&e.msUntilClose>0);
-    let cls='green',icon='✅',label='Crossing likely clear',detail='No trains due in the next 5 minutes';
-    if(activeClosures.length>0){
-      const opensIn=fmtCountdown(Math.min(...activeClosures.map(e=>e.openAt))-Date.now());
-      cls='red';icon='🚧';label='Crossing barriers DOWN';
-      detail=`Opens in approx ${opensIn||'< 1m'} — ${activeClosures.map(e=>e.dest).join(', ')}`;
-    }else if(imminent.length>0){
-      cls='amber';icon='⚠️';label='Crossing closing soon';
-      detail=`Barriers expected in ${fmtCountdown(imminent[0].msUntilClose)} — ${imminent[0].dest}`;
+
+  // ── Status banner ──────────────────────────────────────────────────────────
+  function renderBanner(annotated) {
+    const activeClosures = annotated.filter(e => e.phase === 'closed' && !e.cancelled);
+    const imminent       = annotated.filter(e => e.phase === 'clear'  && !e.cancelled && e.msUntilClose <= WARN_WINDOW && e.msUntilClose > 0);
+
+    let cls = 'green', icon = '✅', label = 'Crossing likely clear', detail = 'No trains due in the next 5 minutes';
+
+    if (activeClosures.length > 0) {
+      const reopens   = Math.min(...activeClosures.map(e => e.openAt));
+      const opensIn   = fmtCountdown(reopens - Date.now());
+      cls    = 'red';
+      icon   = '🚧';
+      label  = 'Crossing barriers DOWN';
+      detail = `Opens in approx ${opensIn || '< 1m'} — ${activeClosures.map(e => e.dest).join(', ')}`;
+    } else if (imminent.length > 0) {
+      const soonest = imminent[0];
+      cls    = 'amber';
+      icon   = '⚠️';
+      label  = 'Crossing closing soon';
+      detail = `Barriers expected in ${fmtCountdown(soonest.msUntilClose)} — ${soonest.dest}`;
     }
-    document.getElementById('status-banner').className=cls;
-    document.getElementById('status-icon').textContent=icon;
-    document.getElementById('status-label').textContent=label;
-    document.getElementById('status-detail').textContent=detail;
+
+    const banner = document.getElementById('status-banner');
+    banner.className = cls;
+    document.getElementById('status-icon').textContent   = icon;
+    document.getElementById('status-label').textContent  = label;
+    document.getElementById('status-detail').textContent = detail;
   }
-  function renderTrainCards(annotated){
-    const list=document.getElementById('train-list');
-    const upcoming=annotated.filter(e=>e.phase!=='open');
-    if(upcoming.length===0){list.innerHTML='<p style="text-align:center;color:var(--muted);font-size:0.82rem;padding:0.5rem">No further trains loaded</p>';return;}
-    list.innerHTML='';
-    for(const e of upcoming.slice(0,12)){
-      const isClosed=e.phase==='closed'&&!e.cancelled,isWarning=e.phase==='clear'&&!e.cancelled&&e.msUntilClose<=WARN_WINDOW;
-      const card=document.createElement('div');card.className='train-card'+(isClosed?' active':isWarning?' warning':'');
-      let lblCls='clear',lblTxt='Clear';
-      if(e.cancelled){lblCls='';lblTxt='Cancelled';}
-      else if(isClosed){lblCls='closed';lblTxt='BARRIERS DOWN';}
-      else if(isWarning){lblCls='soon';lblTxt=`Closes in ${fmtCountdown(e.msUntilClose)}`;}
-      card.innerHTML=`<div><div class="train-dest">${e.cancelled?'❌ ':(e.type==='departure'?'▶ ':'◀ ')}${e.dest}</div><div class="train-meta">${e.type==='departure'?'Departs':'Arrives'} ${fmtTime(e.trainTime)} &bull; Plat ${e.platform} &bull; ${e.operator}</div></div><div class="barrier-window"><div class="barrier-time">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</div><div class="barrier-label ${lblCls}">${lblTxt}</div></div>`;
+
+  // ── Train cards ────────────────────────────────────────────────────────────
+  function renderTrainCards(annotated) {
+    const list = document.getElementById('train-list');
+    const upcoming = annotated.filter(e => e.phase !== 'open');
+
+    if (upcoming.length === 0) {
+      list.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.82rem;padding:0.5rem">No further trains loaded</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+    for (const e of upcoming.slice(0, 12)) {
+      const isClosed  = e.phase === 'closed' && !e.cancelled;
+      const isWarning = e.phase === 'clear'  && !e.cancelled && e.msUntilClose <= WARN_WINDOW;
+
+      const card = document.createElement('div');
+      card.className = 'train-card' + (isClosed ? ' active' : isWarning ? ' warning' : '');
+
+      let lblCls = 'clear', lblTxt = 'Clear';
+      if (e.cancelled)   { lblCls = '';       lblTxt = 'Cancelled'; }
+      else if (isClosed) { lblCls = 'closed'; lblTxt = 'BARRIERS DOWN'; }
+      else if (isWarning){ lblCls = 'soon';   lblTxt = `Closes in ${fmtCountdown(e.msUntilClose)}`; }
+
+      card.innerHTML = `
+        <div>
+          <div class="train-dest">${e.cancelled ? '❌ ' : (e.type === 'departure' ? '▶ ' : '◀ ')}${e.dest}</div>
+          <div class="train-meta">${e.type === 'departure' ? 'Departs' : 'Arrives'} ${fmtTime(e.trainTime)} &bull; Plat ${e.platform} &bull; ${e.operator}</div>
+        </div>
+        <div class="barrier-window">
+          <div class="barrier-time">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</div>
+          <div class="barrier-label ${lblCls}">${lblTxt}</div>
+        </div>
+      `;
       list.appendChild(card);
     }
   }
-  function tickClock(){
-    document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    try{updateUI();}catch(e){console.error('updateUI error:',e);}
+
+  // ── Main UI update (every second) ─────────────────────────────────────────
+  function tickClock() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    try { updateUI(); } catch (e) { console.error('updateUI error:', e); }
   }
-  function updateUI(){
-    const annotated=annotate(trainEvents);
-    renderBanner(annotated);renderTimeline(annotated);renderClosuresList(annotated);renderTrainCards(annotated);
+
+  function updateUI() {
+    const annotated = annotate(trainEvents);
+    renderBanner(annotated);
+    renderTimeline(annotated);
+    renderClosuresList(annotated);
+    renderTrainCards(annotated);
   }
-  async function refresh(){
-    const errEl=document.getElementById('error-msg');errEl.style.display='none';
-    try{
-      trainEvents=await fetchTrains();
-      const diag=window._apiDiag||{};
-      const rawTotal=(diag.rawDeps||0)+(diag.rawArrs||0);
-      document.getElementById('last-updated').textContent=
-        `Updated ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}` +
-        ` · ${trainEvents.length} parsed · ${rawTotal} raw from API` +
-        (diag.stationName&&diag.stationName!=='?'?` · Station: ${diag.stationName}`:` · Station code: ${STATION} (unrecognised?)`);
+
+  // ── Fetch + refresh ────────────────────────────────────────────────────────
+  async function refresh() {
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+    try {
+      trainEvents = await fetchTrains();
+      const diag = window._apiDiag || {};
+      const rawTotal = (diag.rawDeps || 0) + (diag.rawArrs || 0);
+      document.getElementById('last-updated').textContent =
+        `Updated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` +
+        ` · ${trainEvents.length} parsed · ${rawTotal} raw (${diag.source || '?'})` +
+        (diag.stationName && diag.stationName !== '?' ? ` · ${diag.stationName}` : ` · code ${STATION} unrecognised?`);
       updateUI();
-    }catch(err){
-      errEl.style.display='block';errEl.textContent='⚠ '+err.message;
-      document.getElementById('status-label').textContent='Data unavailable';
+    } catch (err) {
+      errEl.style.display = 'block';
+      errEl.textContent = '⚠ ' + err.message;
+      document.getElementById('status-label').textContent = 'Data unavailable';
     }
-    clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,60_000);
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refresh, 60_000);
   }
-  const{appId,appKey}=getCredentials();
-  if(appId&&appKey){showApp();}else{document.getElementById('setup-screen').style.display='block';}
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  const { appId, appKey } = getCredentials();
+  if (appId && appKey) {
+    showApp();
+  } else {
+    document.getElementById('setup-screen').style.display = 'block';
+  }
 </script>
 </body>
 </html>

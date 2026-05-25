@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Totton Crossing Alerts</title>
+  <style>
+    :root {
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    #clock {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Status banner */
+    #status-banner {
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      transition: background 0.4s, border-color 0.4s;
+      border: 2px solid transparent;
+    }
+
+    #status-banner.green  { background: rgba(34,197,94,0.15);  border-color: var(--green); }
+    #status-banner.amber  { background: rgba(245,158,11,0.15); border-color: var(--amber); }
+    #status-banner.red    { background: rgba(239,68,68,0.15);  border-color: var(--red); }
+
+    #status-icon { font-size: 2.5rem; }
+    #status-label {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+    }
+    #status-detail { font-size: 0.875rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* Next closure countdown */
+    #next-closure {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    #next-closure .label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    #next-closure .countdown { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* Train list */
+    #train-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .train-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.9rem 1.1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.25rem 1rem;
+      align-items: center;
+    }
+
+    .train-card.active  { border-color: var(--red);   background: rgba(239,68,68,0.08); }
+    .train-card.warning { border-color: var(--amber);  background: rgba(245,158,11,0.08); }
+
+    .train-dest { font-weight: 600; font-size: 0.95rem; }
+    .train-meta { color: var(--muted); font-size: 0.78rem; margin-top: 0.1rem; }
+    .train-platform { font-size: 0.75rem; color: var(--muted); }
+
+    .barrier-window {
+      text-align: right;
+      font-size: 0.8rem;
+    }
+    .barrier-time { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .barrier-label { color: var(--muted); font-size: 0.72rem; margin-top: 0.1rem; }
+    .barrier-label.closed { color: var(--red); }
+    .barrier-label.soon   { color: var(--amber); }
+    .barrier-label.clear  { color: var(--green); }
+
+    #error-msg {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid var(--red);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      color: var(--red);
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin-top: 2rem;
+    }
+
+    #refresh-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: block;
+      margin: 0 auto 1.5rem;
+    }
+    #refresh-btn:hover { border-color: var(--muted); }
+    #last-updated { text-align: center; font-size: 0.75rem; color: var(--muted); margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Totton Crossing Alerts</h1>
+  <p>Commercial Road level crossing &mdash; Totton Station, Hampshire</p>
+</header>
+
+<div id="clock">--:--:--</div>
+
+<div id="status-banner" class="green">
+  <div id="status-icon">✅</div>
+  <div id="status-label">Loading...</div>
+  <div id="status-detail">Fetching live train data</div>
+</div>
+
+<div id="next-closure">
+  <div>
+    <div class="label">Next closure</div>
+    <div id="next-train-info" style="font-size:0.85rem;margin-top:0.2rem">—</div>
+  </div>
+  <div class="countdown" id="countdown-display">—</div>
+</div>
+
+<button id="refresh-btn" onclick="refresh()">&#8635; Refresh</button>
+<div id="last-updated"></div>
+
+<div id="error-msg"></div>
+<div id="train-list"></div>
+
+<footer>
+  Data: National Rail Darwin via Huxley2 &bull; Barriers estimated ±2&thinsp;min around scheduled time<br>
+  Auto-refreshes every 60 seconds &bull; Not for safety-critical use
+</footer>
+
+<script>
+  // ── Config ────────────────────────────────────────────────────────────────
+  const CRS = 'ttn';                        // Totton station CRS code
+  const API = `https://huxley2.azurewebsites.net`;
+  const BARRIER_BEFORE = 2 * 60 * 1000;    // barriers close 2 min before
+  const BARRIER_AFTER  = 2 * 60 * 1000;    // barriers open 2 min after
+  const WARN_WINDOW    = 5 * 60 * 1000;    // warn if closure within 5 min
+  const NUM_TRAINS     = 10;
+
+  let trainEvents = [];   // sorted list of { trainTime, dest, operator, platform, type }
+  let refreshTimer = null;
+
+  // ── Clock ─────────────────────────────────────────────────────────────────
+  function tickClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    updateUI();
+  }
+  setInterval(tickClock, 1000);
+
+  // ── Parse hh:mm time string into today's Date ──────────────────────────
+  function parseTime(hhmm) {
+    if (!hhmm) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    // Handle services just past midnight showing before 01:00
+    const now = new Date();
+    if (d < now - 60 * 60 * 1000) d.setDate(d.getDate() + 1);
+    return d;
+  }
+
+  function fmtTime(date) {
+    if (!date) return '?';
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function fmtCountdown(ms) {
+    if (ms <= 0) return null;
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    if (h > 0) return `${h}h ${m % 60}m`;
+    if (m > 0) return `${m}m ${s % 60}s`;
+    return `${s}s`;
+  }
+
+  // ── Fetch both departures and arrivals ────────────────────────────────────
+  async function fetchTrains() {
+    const [depRes, arrRes] = await Promise.all([
+      fetch(`${API}/departures/${CRS}/${NUM_TRAINS}?expand=true`),
+      fetch(`${API}/arrivals/${CRS}/${NUM_TRAINS}?expand=true`),
+    ]);
+
+    if (!depRes.ok && !arrRes.ok) throw new Error('Failed to fetch train data');
+
+    const events = [];
+
+    async function processResponse(res, type) {
+      if (!res.ok) return;
+      const data = await res.json();
+      const services = data.trainServices || [];
+      for (const svc of services) {
+        const timeStr = svc.std || svc.sta || svc.etd || svc.eta;
+        const liveStr = (svc.etd && svc.etd !== 'On time' && svc.etd !== 'Cancelled') ? svc.etd
+                      : (svc.eta && svc.eta !== 'On time' && svc.eta !== 'Cancelled') ? svc.eta
+                      : null;
+        const scheduledTime = parseTime(timeStr);
+        const liveTime = liveStr ? parseTime(liveStr) : scheduledTime;
+        if (!scheduledTime) continue;
+
+        const dest = type === 'departure'
+          ? (svc.destination?.[0]?.locationName || 'Unknown')
+          : (svc.origin?.[0]?.locationName || 'Unknown');
+
+        events.push({
+          trainTime: liveTime || scheduledTime,
+          scheduledTime,
+          dest,
+          operator: svc.operatorCode || '',
+          platform: svc.platform || '?',
+          type,
+          cancelled: svc.isCancelled,
+        });
+      }
+    }
+
+    await Promise.all([
+      processResponse(depRes, 'departure'),
+      processResponse(arrRes, 'arrival'),
+    ]);
+
+    // Deduplicate by rounding to nearest minute + destination
+    const seen = new Set();
+    const unique = events.filter(e => {
+      const key = `${Math.round(e.trainTime / 60000)}-${e.dest}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort chronologically
+    unique.sort((a, b) => a.trainTime - b.trainTime);
+
+    // Keep only future or currently-closing events
+    const now = Date.now();
+    return unique.filter(e => e.trainTime.getTime() + BARRIER_AFTER > now);
+  }
+
+  // ── Update UI based on current time ───────────────────────────────────────
+  function updateUI() {
+    const now = Date.now();
+    let statusClass = 'green';
+    let statusIcon = '✅';
+    let statusLabel = 'Crossing likely clear';
+    let statusDetail = 'No trains expected soon';
+
+    // Evaluate each event's barrier window
+    const annotated = trainEvents.map(e => {
+      const t = e.trainTime.getTime();
+      const closeAt = t - BARRIER_BEFORE;
+      const openAt  = t + BARRIER_AFTER;
+      const msUntilClose = closeAt - now;
+      const msSinceClose = now - closeAt;
+      const msSinceOpen  = now - openAt;
+
+      let phase;
+      if (now < closeAt) phase = 'clear';
+      else if (now < openAt) phase = 'closed';
+      else phase = 'open';
+
+      return { ...e, closeAt, openAt, msUntilClose, phase };
+    });
+
+    // Check if any barrier window is active right now
+    const activeClosures = annotated.filter(e => e.phase === 'closed' && !e.cancelled);
+    const imminent = annotated.filter(e => e.phase === 'clear' && !e.cancelled && e.msUntilClose <= WARN_WINDOW && e.msUntilClose > 0);
+
+    if (activeClosures.length > 0) {
+      statusClass = 'red';
+      statusIcon = '🚧';
+      statusLabel = 'Crossing barriers DOWN';
+      statusDetail = `Train at Totton — ${activeClosures.map(e => e.dest).join(', ')}`;
+    } else if (imminent.length > 0) {
+      const soonest = imminent[0];
+      statusClass = 'amber';
+      statusIcon = '⚠️';
+      statusLabel = 'Crossing closing soon';
+      statusDetail = `Barriers expected in ${fmtCountdown(soonest.msUntilClose)}`;
+    } else {
+      statusDetail = 'Next closure: ' + (annotated.find(e => !e.cancelled && e.phase === 'clear') ? '' : 'none upcoming');
+    }
+
+    const banner = document.getElementById('status-banner');
+    banner.className = statusClass;
+    document.getElementById('status-icon').textContent = statusIcon;
+    document.getElementById('status-label').textContent = statusLabel;
+    document.getElementById('status-detail').textContent = statusDetail;
+
+    // Next closure countdown
+    const nextClear = annotated.find(e => !e.cancelled && e.phase === 'clear');
+    const countdownEl = document.getElementById('countdown-display');
+    const nextInfoEl  = document.getElementById('next-train-info');
+
+    if (nextClear) {
+      const cd = fmtCountdown(nextClear.msUntilClose);
+      countdownEl.textContent = cd || '< 1s';
+      nextInfoEl.textContent = `${nextClear.type === 'departure' ? '▶' : '◀'} ${nextClear.dest} at ${fmtTime(nextClear.trainTime)}`;
+    } else if (activeClosures.length > 0) {
+      const reopens = Math.min(...activeClosures.map(e => e.openAt));
+      countdownEl.textContent = fmtCountdown(reopens - now) || 'now';
+      nextInfoEl.textContent = 'Opening in…';
+    } else {
+      countdownEl.textContent = '—';
+      nextInfoEl.textContent = 'No more trains loaded';
+    }
+
+    // Train cards
+    const list = document.getElementById('train-list');
+    list.innerHTML = '';
+
+    if (annotated.length === 0) {
+      list.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.85rem">No upcoming trains found</p>';
+      return;
+    }
+
+    for (const e of annotated.slice(0, 10)) {
+      const card = document.createElement('div');
+      card.className = 'train-card' +
+        (e.phase === 'closed' && !e.cancelled ? ' active' : '') +
+        (e.phase === 'clear' && !e.cancelled && e.msUntilClose <= WARN_WINDOW ? ' warning' : '');
+
+      const barrierClose = new Date(e.closeAt);
+      const barrierOpen  = new Date(e.openAt);
+
+      let barrierLabelClass = 'clear';
+      let barrierLabelText = 'Clear';
+      if (e.cancelled) { barrierLabelClass = ''; barrierLabelText = 'Cancelled'; }
+      else if (e.phase === 'closed') { barrierLabelClass = 'closed'; barrierLabelText = 'BARRIERS DOWN'; }
+      else if (e.phase === 'clear' && e.msUntilClose <= WARN_WINDOW) { barrierLabelClass = 'soon'; barrierLabelText = `Closes in ${fmtCountdown(e.msUntilClose)}`; }
+      else if (e.phase === 'open') { barrierLabelClass = 'clear'; barrierLabelText = 'Passed'; }
+
+      card.innerHTML = `
+        <div>
+          <div class="train-dest">${e.cancelled ? '❌ ' : (e.type === 'departure' ? '▶ ' : '◀ ')}${e.dest}</div>
+          <div class="train-meta">${e.type === 'departure' ? 'Departs' : 'Arrives'} ${fmtTime(e.trainTime)} &bull; Plat ${e.platform} &bull; ${e.operator}</div>
+        </div>
+        <div class="barrier-window">
+          <div class="barrier-time">${fmtTime(barrierClose)}–${fmtTime(barrierOpen)}</div>
+          <div class="barrier-label ${barrierLabelClass}">${barrierLabelText}</div>
+        </div>
+      `;
+      list.appendChild(card);
+    }
+  }
+
+  // ── Fetch & refresh ───────────────────────────────────────────────────────
+  async function refresh() {
+    document.getElementById('error-msg').style.display = 'none';
+    try {
+      trainEvents = await fetchTrains();
+      document.getElementById('last-updated').textContent =
+        'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      updateUI();
+    } catch (err) {
+      const errEl = document.getElementById('error-msg');
+      errEl.style.display = 'block';
+      errEl.textContent = '⚠ Could not load train data: ' + err.message +
+        '. National Rail data may be temporarily unavailable. Try refreshing.';
+      document.getElementById('status-label').textContent = 'Data unavailable';
+    }
+
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refresh, 60_000);
+  }
+
+  // Start
+  tickClock();
+  refresh();
+</script>
+</body>
+</html>

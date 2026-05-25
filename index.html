@@ -27,12 +27,7 @@
       padding: 1.5rem 1rem;
     }
 
-    /* ── Setup screen ─────────────────────────────────────────────────────── */
-    #setup-screen {
-      max-width: 480px;
-      margin: 2rem auto;
-    }
-
+    #setup-screen { max-width: 480px; margin: 2rem auto; display: none; }
     #setup-screen h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
     #setup-screen .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
 
@@ -84,7 +79,6 @@
       margin-top: 0.75rem;
       display: none;
     }
-
     .btn-primary {
       width: 100%;
       background: var(--blue);
@@ -100,10 +94,9 @@
     .btn-primary:hover { opacity: 0.9; }
     .btn-primary:disabled { opacity: 0.5; cursor: default; }
 
-    /* ── Main app ─────────────────────────────────────────────────────────── */
     #app { display: none; }
 
-    header { text-align: center; margin-bottom: 2rem; }
+    header { text-align: center; margin-bottom: 1.5rem; }
     header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
     header p { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
 
@@ -112,60 +105,125 @@
       font-size: 2.5rem;
       font-weight: 700;
       letter-spacing: 0.05em;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       font-variant-numeric: tabular-nums;
     }
 
     #status-banner {
       border-radius: 1rem;
-      padding: 1.25rem 1.5rem;
+      padding: 1.1rem 1.5rem;
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       transition: background 0.4s, border-color 0.4s;
       border: 2px solid transparent;
     }
     #status-banner.green { background: rgba(34,197,94,0.15);  border-color: var(--green); }
     #status-banner.amber { background: rgba(245,158,11,0.15); border-color: var(--amber); }
     #status-banner.red   { background: rgba(239,68,68,0.15);  border-color: var(--red); }
+    #status-icon  { font-size: 2rem; }
+    #status-label { font-size: 1.15rem; font-weight: 700; margin-top: 0.2rem; }
+    #status-detail { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
 
-    #status-icon  { font-size: 2.5rem; }
-    #status-label { font-size: 1.2rem; font-weight: 700; margin-top: 0.25rem; }
-    #status-detail { font-size: 0.875rem; color: var(--muted); margin-top: 0.25rem; }
-
-    #next-closure {
+    .section-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 0.75rem;
-      padding: 1rem 1.25rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+
+    #timeline-wrap { position: relative; margin-bottom: 0.4rem; }
+    #timeline-bar {
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tl-closure {
+      position: absolute;
+      top: 0; height: 100%;
+      background: var(--red);
+      border-radius: 99px;
+      opacity: 0.85;
+    }
+    .tl-closure.soon { background: var(--amber); }
+    .tl-closure.active { opacity: 1; }
+    #tl-now {
+      position: absolute;
+      top: -3px;
+      width: 3px;
+      height: 16px;
+      background: var(--text);
+      border-radius: 2px;
+      transform: translateX(-50%);
+    }
+    #timeline-ticks {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
+      margin-top: 0.35rem;
+      padding: 0 1px;
     }
-    #next-closure .label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
-    #next-closure .countdown { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #timeline-ticks span {
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
 
-    #train-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    #closures-list { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.75rem; }
+    .closure-row {
+      display: grid;
+      grid-template-columns: 1.4rem 1fr auto auto;
+      gap: 0 0.5rem;
+      align-items: center;
+      font-size: 0.82rem;
+    }
+    .closure-dir { color: var(--muted); font-size: 0.7rem; text-align: center; }
+    .closure-dest { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .closure-window { color: var(--muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .closure-cd {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      min-width: 4.5rem;
+      text-align: right;
+    }
+    .closure-cd.active { color: var(--red); }
+    .closure-cd.soon   { color: var(--amber); }
+    .closure-cd.clear  { color: var(--muted); }
 
+    #no-trains-msg {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 0.5rem 0;
+    }
+
+    #train-list { display: flex; flex-direction: column; gap: 0.65rem; }
     .train-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 0.75rem;
-      padding: 0.9rem 1.1rem;
+      padding: 0.85rem 1rem;
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 0.25rem 1rem;
+      gap: 0.2rem 1rem;
       align-items: center;
     }
-    .train-card.active  { border-color: var(--red);  background: rgba(239,68,68,0.08); }
-    .train-card.warning { border-color: var(--amber); background: rgba(245,158,11,0.08); }
-
-    .train-dest { font-weight: 600; font-size: 0.95rem; }
-    .train-meta { color: var(--muted); font-size: 0.78rem; margin-top: 0.1rem; }
-
-    .barrier-window { text-align: right; font-size: 0.8rem; }
+    .train-card.active  { border-color: var(--red);   background: rgba(239,68,68,0.08); }
+    .train-card.warning { border-color: var(--amber);  background: rgba(245,158,11,0.08); }
+    .train-dest { font-weight: 600; font-size: 0.92rem; }
+    .train-meta { color: var(--muted); font-size: 0.75rem; margin-top: 0.1rem; }
+    .barrier-window { text-align: right; font-size: 0.78rem; }
     .barrier-time { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .barrier-label { color: var(--muted); font-size: 0.72rem; margin-top: 0.1rem; }
+    .barrier-label { color: var(--muted); font-size: 0.7rem; margin-top: 0.1rem; }
     .barrier-label.closed { color: var(--red); }
     .barrier-label.soon   { color: var(--amber); }
     .barrier-label.clear  { color: var(--green); }
@@ -185,7 +243,7 @@
       display: flex;
       justify-content: center;
       gap: 0.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
     .btn-sm {
       background: var(--surface);
@@ -198,23 +256,15 @@
     }
     .btn-sm:hover { border-color: var(--muted); }
 
-    #last-updated { text-align: center; font-size: 0.75rem; color: var(--muted); margin-bottom: 1rem; }
-
-    footer {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.72rem;
-      margin-top: 2rem;
-    }
+    #last-updated { text-align: center; font-size: 0.72rem; color: var(--muted); margin-bottom: 0.85rem; }
+    footer { text-align: center; color: var(--muted); font-size: 0.7rem; margin-top: 2rem; }
   </style>
 </head>
 <body>
 
-<!-- ── Setup screen ──────────────────────────────────────────────────────── -->
 <div id="setup-screen">
   <h1>Totton Crossing Alerts</h1>
   <p class="sub">One-time setup — your keys are saved locally in this browser only.</p>
-
   <div class="step">
     <span class="step-num">1</span>
     <span class="step-title">Create a free Transport API account</span>
@@ -223,16 +273,14 @@
       and register for a free account (1,000 calls/day — more than enough).
     </div>
   </div>
-
   <div class="step">
     <span class="step-num">2</span>
     <span class="step-title">Copy your App ID and App Key</span>
     <div class="step-body">
       After signing in, your credentials are on the dashboard under
-      <strong>My Apps</strong>. You'll see an <em>App ID</em> and an <em>App Key</em>.
+      <strong>My Apps</strong>. You’ll see an <em>App ID</em> and an <em>App Key</em>.
     </div>
   </div>
-
   <div class="step">
     <span class="step-num">3</span>
     <span class="step-title">Paste them below</span>
@@ -251,38 +299,35 @@
   </div>
 </div>
 
-<!-- ── Main app ──────────────────────────────────────────────────────────── -->
 <div id="app">
   <header>
     <h1>Totton Crossing Alerts</h1>
     <p>Commercial Road level crossing &mdash; Totton Station, Hampshire</p>
   </header>
-
   <div id="clock">--:--:--</div>
-
   <div id="status-banner" class="green">
     <div id="status-icon">✅</div>
     <div id="status-label">Loading...</div>
     <div id="status-detail">Fetching live train data</div>
   </div>
-
-  <div id="next-closure">
-    <div>
-      <div class="label">Next closure</div>
-      <div id="next-train-info" style="font-size:0.85rem;margin-top:0.2rem">—</div>
+  <div class="section-card">
+    <div class="section-label">Next 60 minutes</div>
+    <div id="timeline-wrap">
+      <div id="timeline-bar"><div id="tl-now"></div></div>
+      <div id="timeline-ticks"></div>
     </div>
-    <div class="countdown" id="countdown-display">—</div>
+    <div id="closures-list">
+      <div id="no-trains-msg">Loading train data…</div>
+    </div>
   </div>
-
-  <div class="toolbar">
+  <div id="error-msg"></div>
+  <div class="section-label" style="padding-left:0.25rem;margin-bottom:0.5rem">Upcoming trains</div>
+  <div id="train-list"></div>
+  <div class="toolbar" style="margin-top:1.25rem">
     <button class="btn-sm" onclick="refresh()">&#8635; Refresh</button>
     <button class="btn-sm" onclick="resetCredentials()">&#9881; Change API keys</button>
   </div>
   <div id="last-updated"></div>
-
-  <div id="error-msg"></div>
-  <div id="train-list"></div>
-
   <footer>
     Data: Transport API &bull; Barriers estimated ±2&thinsp;min around scheduled time<br>
     Auto-refreshes every 60 seconds &bull; Not for safety-critical use
@@ -290,23 +335,19 @@
 </div>
 
 <script>
-  // ── Constants ──────────────────────────────────────────────────────────────
-  const STATION     = 'TTN';
+  const STATION        = 'TTN';
   const BARRIER_BEFORE = 2 * 60 * 1000;
   const BARRIER_AFTER  = 2 * 60 * 1000;
   const WARN_WINDOW    = 5 * 60 * 1000;
-  const STORAGE_ID  = 'tapi_app_id';
-  const STORAGE_KEY = 'tapi_app_key';
+  const TIMELINE_MINS  = 60;
+  const STORAGE_ID     = 'tapi_app_id';
+  const STORAGE_KEY    = 'tapi_app_key';
 
   let trainEvents  = [];
   let refreshTimer = null;
 
-  // ── Credential management ──────────────────────────────────────────────────
   function getCredentials() {
-    return {
-      appId:  localStorage.getItem(STORAGE_ID)  || '',
-      appKey: localStorage.getItem(STORAGE_KEY) || '',
-    };
+    return { appId: localStorage.getItem(STORAGE_ID) || '', appKey: localStorage.getItem(STORAGE_KEY) || '' };
   }
 
   function saveCredentials() {
@@ -314,44 +355,20 @@
     const errEl  = document.getElementById('setup-error');
     const appId  = document.getElementById('input-app-id').value.trim();
     const appKey = document.getElementById('input-app-key').value.trim();
-
     errEl.style.display = 'none';
-    if (!appId || !appKey) {
-      errEl.textContent = 'Please enter both your App ID and App Key.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Verifying…';
-
-    const url = buildUrl(appId, appKey);
-    fetch(url)
-      .then(r => {
-        if (r.status === 403) throw new Error('Invalid credentials — check your App ID and App Key.');
-        if (!r.ok) throw new Error(`API returned ${r.status}. Try again shortly.`);
-        return r.json();
-      })
-      .then(() => {
-        localStorage.setItem(STORAGE_ID,  appId);
-        localStorage.setItem(STORAGE_KEY, appKey);
-        showApp();
-      })
-      .catch(err => {
-        errEl.textContent = '⚠ ' + err.message;
-        errEl.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Save & Open App';
-      });
+    if (!appId || !appKey) { errEl.textContent = 'Please enter both your App ID and App Key.'; errEl.style.display = 'block'; return; }
+    btn.disabled = true; btn.textContent = 'Verifying…';
+    fetch(buildUrl(appId, appKey))
+      .then(r => { if (r.status === 403) throw new Error('Invalid credentials — check your App ID and App Key.'); if (!r.ok) throw new Error(`API returned ${r.status}. Try again shortly.`); return r.json(); })
+      .then(() => { localStorage.setItem(STORAGE_ID, appId); localStorage.setItem(STORAGE_KEY, appKey); showApp(); })
+      .catch(err => { errEl.textContent = '⚠ ' + err.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Save & Open App'; });
   }
 
   function resetCredentials() {
-    localStorage.removeItem(STORAGE_ID);
-    localStorage.removeItem(STORAGE_KEY);
-    clearTimeout(refreshTimer);
+    localStorage.removeItem(STORAGE_ID); localStorage.removeItem(STORAGE_KEY); clearTimeout(refreshTimer);
     document.getElementById('app').style.display = 'none';
     document.getElementById('setup-screen').style.display = 'block';
-    document.getElementById('input-app-id').value  = '';
+    document.getElementById('input-app-id').value = '';
     document.getElementById('input-app-key').value = '';
     document.getElementById('setup-error').style.display = 'none';
     document.getElementById('setup-btn').disabled = false;
@@ -361,76 +378,47 @@
   function showApp() {
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    tickClock();
-    refresh();
+    setInterval(tickClock, 1000); tickClock(); refresh();
   }
 
-  // ── API ────────────────────────────────────────────────────────────────────
   function buildUrl(appId, appKey) {
     return `https://transportapi.com/v3/uk/train/station/${STATION}/live.json` +
            `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
-           `&train_status=passenger&type=arrival%2Cdeparture`;
+           `&train_status=passenger&type=arrival%2Cdeparture&to_offset=PT02:00:00`;
   }
 
   async function fetchTrains() {
     const { appId, appKey } = getCredentials();
     const res = await fetch(buildUrl(appId, appKey));
-    if (res.status === 403) throw new Error('API credentials rejected — use "Change API keys" to update them.');
+    if (res.status === 403) throw new Error('API credentials rejected — use “Change API keys” to update them.');
     if (!res.ok) throw new Error(`Transport API returned ${res.status}`);
     const data = await res.json();
-
     const events = [];
-
     function parseServices(services, type) {
       for (const svc of (services || [])) {
         const aimedStr    = type === 'departure' ? svc.aimed_departure_time    : svc.aimed_arrival_time;
         const expectedStr = type === 'departure' ? svc.expected_departure_time : svc.expected_arrival_time;
-
-        const useStr = (expectedStr && expectedStr !== 'On time' && expectedStr !== 'Cancelled' && /^\d{2}:\d{2}$/.test(expectedStr))
-          ? expectedStr : aimedStr;
-
+        const useStr = (expectedStr && expectedStr !== 'On time' && expectedStr !== 'Cancelled' && /^\d{2}:\d{2}$/.test(expectedStr)) ? expectedStr : aimedStr;
         const trainTime = parseTime(useStr);
         if (!trainTime) continue;
-
         const cancelled = svc.status === 'CANCELLED' || expectedStr === 'Cancelled';
-        const dest = type === 'departure'
-          ? (svc.destination_name || 'Unknown')
-          : (svc.origin_name      || 'Unknown');
-
-        events.push({
-          trainTime,
-          dest,
-          operator: svc.operator_name || svc.operator || '',
-          platform: svc.platform || '?',
-          type,
-          cancelled,
-        });
+        const dest = type === 'departure' ? (svc.destination_name || 'Unknown') : (svc.origin_name || 'Unknown');
+        events.push({ trainTime, dest, operator: svc.operator_name || svc.operator || '', platform: svc.platform || '?', type, cancelled });
       }
     }
-
     parseServices(data.departures?.all, 'departure');
     parseServices(data.arrivals?.all,   'arrival');
-
     const seen = new Set();
-    const unique = events.filter(e => {
-      const key = `${Math.round(e.trainTime / 60000)}-${e.dest}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
+    const unique = events.filter(e => { const key = `${Math.round(e.trainTime / 60000)}-${e.dest}`; if (seen.has(key)) return false; seen.add(key); return true; });
     unique.sort((a, b) => a.trainTime - b.trainTime);
-
     const now = Date.now();
     return unique.filter(e => e.trainTime.getTime() + BARRIER_AFTER > now);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   function parseTime(hhmm) {
     if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return null;
     const [h, m] = hhmm.split(':').map(Number);
-    const d = new Date();
-    d.setHours(h, m, 0, 0);
+    const d = new Date(); d.setHours(h, m, 0, 0);
     if (d < Date.now() - 60 * 60 * 1000) d.setDate(d.getDate() + 1);
     return d;
   }
@@ -442,138 +430,127 @@
 
   function fmtCountdown(ms) {
     if (ms <= 0) return null;
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    const h = Math.floor(m / 60);
-    if (h > 0) return `${h}h ${m % 60}m`;
-    if (m > 0) return `${m}m ${s % 60}s`;
+    const s = Math.floor(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60);
+    if (h > 0) return `${h}h ${String(m % 60).padStart(2,'0')}m`;
+    if (m > 0) return `${m}m ${String(s % 60).padStart(2,'0')}s`;
     return `${s}s`;
   }
 
-  // ── Clock + UI update (runs every second) ─────────────────────────────────
-  function tickClock() {
-    const now = new Date();
-    document.getElementById('clock').textContent =
-      now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    updateUI();
-  }
-
-  function updateUI() {
+  function annotate(events) {
     const now = Date.now();
-
-    const annotated = trainEvents.map(e => {
-      const t        = e.trainTime.getTime();
-      const closeAt  = t - BARRIER_BEFORE;
-      const openAt   = t + BARRIER_AFTER;
+    return events.map(e => {
+      const t = e.trainTime.getTime(), closeAt = t - BARRIER_BEFORE, openAt = t + BARRIER_AFTER;
       const msUntilClose = closeAt - now;
       const phase = now < closeAt ? 'clear' : now < openAt ? 'closed' : 'open';
       return { ...e, closeAt, openAt, msUntilClose, phase };
     });
+  }
 
-    const activeClosures = annotated.filter(e => e.phase === 'closed' && !e.cancelled);
-    const imminent       = annotated.filter(e => e.phase === 'clear'  && !e.cancelled && e.msUntilClose <= WARN_WINDOW && e.msUntilClose > 0);
-
-    let statusClass  = 'green';
-    let statusIcon   = '✅';
-    let statusLabel  = 'Crossing likely clear';
-    let statusDetail = 'No trains expected soon';
-
-    if (activeClosures.length > 0) {
-      statusClass  = 'red';
-      statusIcon   = '🚧';
-      statusLabel  = 'Crossing barriers DOWN';
-      statusDetail = `Train at Totton — ${activeClosures.map(e => e.dest).join(', ')}`;
-    } else if (imminent.length > 0) {
-      const soonest = imminent[0];
-      statusClass  = 'amber';
-      statusIcon   = '⚠️';
-      statusLabel  = 'Crossing closing soon';
-      statusDetail = `Barriers expected in ${fmtCountdown(soonest.msUntilClose)}`;
+  function renderTimeline(annotated) {
+    const now = Date.now(), endMs = now + TIMELINE_MINS * 60 * 1000, spanMs = TIMELINE_MINS * 60 * 1000;
+    const bar = document.getElementById('timeline-bar');
+    bar.querySelectorAll('.tl-closure').forEach(el => el.remove());
+    for (const e of annotated) {
+      if (e.cancelled) continue;
+      const closeAt = Math.max(e.closeAt, now), openAt = Math.min(e.openAt, endMs);
+      if (closeAt >= endMs || openAt <= now) continue;
+      const leftPct = ((closeAt - now) / spanMs) * 100, widthPct = ((openAt - closeAt) / spanMs) * 100;
+      const seg = document.createElement('div');
+      seg.className = 'tl-closure' + (e.phase === 'closed' ? ' active' : e.msUntilClose <= WARN_WINDOW ? ' soon' : '');
+      seg.style.left = leftPct + '%'; seg.style.width = Math.max(widthPct, 0.8) + '%';
+      bar.appendChild(seg);
     }
-
-    const banner = document.getElementById('status-banner');
-    banner.className = statusClass;
-    document.getElementById('status-icon').textContent   = statusIcon;
-    document.getElementById('status-label').textContent  = statusLabel;
-    document.getElementById('status-detail').textContent = statusDetail;
-
-    const nextClear    = annotated.find(e => !e.cancelled && e.phase === 'clear');
-    const countdownEl  = document.getElementById('countdown-display');
-    const nextInfoEl   = document.getElementById('next-train-info');
-
-    if (nextClear) {
-      countdownEl.textContent = fmtCountdown(nextClear.msUntilClose) || '< 1s';
-      nextInfoEl.textContent  = `${nextClear.type === 'departure' ? '▶' : '◀'} ${nextClear.dest} at ${fmtTime(nextClear.trainTime)}`;
-    } else if (activeClosures.length > 0) {
-      const reopens = Math.min(...activeClosures.map(e => e.openAt));
-      countdownEl.textContent = fmtCountdown(reopens - now) || 'now';
-      nextInfoEl.textContent  = 'Opening in…';
-    } else {
-      countdownEl.textContent = '—';
-      nextInfoEl.textContent  = 'No more trains loaded';
+    const ticks = document.getElementById('timeline-ticks'); ticks.innerHTML = '';
+    for (let i = 0; i <= 4; i++) {
+      const sp = document.createElement('span');
+      sp.textContent = fmtTime(new Date(now + i * 15 * 60 * 1000));
+      ticks.appendChild(sp);
     }
+  }
 
-    const list = document.getElementById('train-list');
-    list.innerHTML = '';
-
-    if (annotated.length === 0) {
-      list.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.85rem">No upcoming trains found</p>';
+  function renderClosuresList(annotated) {
+    const now = Date.now(), horizon = now + TIMELINE_MINS * 60 * 1000;
+    const list = document.getElementById('closures-list'), noMsg = document.getElementById('no-trains-msg');
+    const visible = annotated.filter(e => !e.cancelled && e.phase !== 'open' && e.closeAt < horizon);
+    if (visible.length === 0) {
+      list.innerHTML = ''; noMsg.style.display = 'block';
+      const later = annotated.filter(e => !e.cancelled && e.phase !== 'open');
+      noMsg.textContent = later.length > 0
+        ? `No closures in the next hour — next train at ${fmtTime(later[0].trainTime)}`
+        : 'No further trains in the loaded data — will refresh shortly';
       return;
     }
+    noMsg.style.display = 'none'; list.innerHTML = '';
+    for (const e of visible) {
+      const row = document.createElement('div'); row.className = 'closure-row';
+      let cdClass = 'clear', cdText = fmtCountdown(e.msUntilClose) || '—';
+      if (e.phase === 'closed') { cdClass = 'active'; cdText = 'NOW'; }
+      else if (e.msUntilClose <= WARN_WINDOW) { cdClass = 'soon'; }
+      row.innerHTML = `<span class="closure-dir">${e.type === 'departure' ? '▶' : '◀'}</span><span class="closure-dest">${e.dest}</span><span class="closure-window">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</span><span class="closure-cd ${cdClass}">${cdText}</span>`;
+      list.appendChild(row);
+    }
+  }
 
-    for (const e of annotated.slice(0, 10)) {
-      const isClosed  = e.phase === 'closed' && !e.cancelled;
-      const isWarning = e.phase === 'clear'  && !e.cancelled && e.msUntilClose <= WARN_WINDOW;
+  function renderBanner(annotated) {
+    const activeClosures = annotated.filter(e => e.phase === 'closed' && !e.cancelled);
+    const imminent = annotated.filter(e => e.phase === 'clear' && !e.cancelled && e.msUntilClose <= WARN_WINDOW && e.msUntilClose > 0);
+    let cls = 'green', icon = '✅', label = 'Crossing likely clear', detail = 'No trains due in the next 5 minutes';
+    if (activeClosures.length > 0) {
+      const opensIn = fmtCountdown(Math.min(...activeClosures.map(e => e.openAt)) - Date.now());
+      cls = 'red'; icon = '🚧'; label = 'Crossing barriers DOWN';
+      detail = `Opens in approx ${opensIn || '< 1m'} — ${activeClosures.map(e => e.dest).join(', ')}`;
+    } else if (imminent.length > 0) {
+      cls = 'amber'; icon = '⚠️'; label = 'Crossing closing soon';
+      detail = `Barriers expected in ${fmtCountdown(imminent[0].msUntilClose)} — ${imminent[0].dest}`;
+    }
+    document.getElementById('status-banner').className = cls;
+    document.getElementById('status-icon').textContent   = icon;
+    document.getElementById('status-label').textContent  = label;
+    document.getElementById('status-detail').textContent = detail;
+  }
 
-      const card = document.createElement('div');
-      card.className = 'train-card' + (isClosed ? ' active' : isWarning ? ' warning' : '');
-
-      let barrierLabelClass = 'clear';
-      let barrierLabelText  = 'Clear';
-      if (e.cancelled)   { barrierLabelClass = '';       barrierLabelText = 'Cancelled'; }
-      else if (isClosed) { barrierLabelClass = 'closed'; barrierLabelText = 'BARRIERS DOWN'; }
-      else if (isWarning){ barrierLabelClass = 'soon';   barrierLabelText = `Closes in ${fmtCountdown(e.msUntilClose)}`; }
-      else if (e.phase === 'open') { barrierLabelClass = 'clear'; barrierLabelText = 'Passed'; }
-
-      card.innerHTML = `
-        <div>
-          <div class="train-dest">${e.cancelled ? '❌ ' : (e.type === 'departure' ? '▶ ' : '◀ ')}${e.dest}</div>
-          <div class="train-meta">${e.type === 'departure' ? 'Departs' : 'Arrives'} ${fmtTime(e.trainTime)} &bull; Plat ${e.platform} &bull; ${e.operator}</div>
-        </div>
-        <div class="barrier-window">
-          <div class="barrier-time">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</div>
-          <div class="barrier-label ${barrierLabelClass}">${barrierLabelText}</div>
-        </div>
-      `;
+  function renderTrainCards(annotated) {
+    const list = document.getElementById('train-list');
+    const upcoming = annotated.filter(e => e.phase !== 'open');
+    if (upcoming.length === 0) { list.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.82rem;padding:0.5rem">No further trains loaded</p>'; return; }
+    list.innerHTML = '';
+    for (const e of upcoming.slice(0, 12)) {
+      const isClosed = e.phase === 'closed' && !e.cancelled, isWarning = e.phase === 'clear' && !e.cancelled && e.msUntilClose <= WARN_WINDOW;
+      const card = document.createElement('div'); card.className = 'train-card' + (isClosed ? ' active' : isWarning ? ' warning' : '');
+      let lblCls = 'clear', lblTxt = 'Clear';
+      if (e.cancelled) { lblCls = ''; lblTxt = 'Cancelled'; }
+      else if (isClosed) { lblCls = 'closed'; lblTxt = 'BARRIERS DOWN'; }
+      else if (isWarning) { lblCls = 'soon'; lblTxt = `Closes in ${fmtCountdown(e.msUntilClose)}`; }
+      card.innerHTML = `<div><div class="train-dest">${e.cancelled ? '❌ ' : (e.type === 'departure' ? '▶ ' : '◀ ')}${e.dest}</div><div class="train-meta">${e.type === 'departure' ? 'Departs' : 'Arrives'} ${fmtTime(e.trainTime)} &bull; Plat ${e.platform} &bull; ${e.operator}</div></div><div class="barrier-window"><div class="barrier-time">${fmtTime(new Date(e.closeAt))}–${fmtTime(new Date(e.openAt))}</div><div class="barrier-label ${lblCls}">${lblTxt}</div></div>`;
       list.appendChild(card);
     }
   }
 
-  // ── Fetch + refresh loop ───────────────────────────────────────────────────
-  async function refresh() {
-    const errEl = document.getElementById('error-msg');
-    errEl.style.display = 'none';
-    try {
-      trainEvents = await fetchTrains();
-      document.getElementById('last-updated').textContent =
-        'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      updateUI();
-    } catch (err) {
-      errEl.style.display = 'block';
-      errEl.textContent = '⚠ ' + err.message;
-      document.getElementById('status-label').textContent = 'Data unavailable';
-    }
-    clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(refresh, 60_000);
+  function tickClock() {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    updateUI();
   }
 
-  // ── Boot ───────────────────────────────────────────────────────────────────
-  const { appId, appKey } = getCredentials();
-  if (appId && appKey) {
-    showApp();
-  } else {
-    document.getElementById('setup-screen').style.display = 'block';
+  function updateUI() {
+    const annotated = annotate(trainEvents);
+    renderBanner(annotated); renderTimeline(annotated); renderClosuresList(annotated); renderTrainCards(annotated);
   }
+
+  async function refresh() {
+    const errEl = document.getElementById('error-msg'); errEl.style.display = 'none';
+    try {
+      trainEvents = await fetchTrains();
+      document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      updateUI();
+    } catch (err) {
+      errEl.style.display = 'block'; errEl.textContent = '⚠ ' + err.message;
+      document.getElementById('status-label').textContent = 'Data unavailable';
+    }
+    clearTimeout(refreshTimer); refreshTimer = setTimeout(refresh, 60_000);
+  }
+
+  const { appId, appKey } = getCredentials();
+  if (appId && appKey) { showApp(); } else { document.getElementById('setup-screen').style.display = 'block'; }
 </script>
 </body>
 </html>

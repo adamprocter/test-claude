@@ -438,7 +438,7 @@
   function liveUrl(appId, appKey) {
     return `https://transportapi.com/v3/uk/train/station/${STATION}/live.json` +
            `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
-           `&train_status=passenger&type=arrival%2Cdeparture&to_offset=PT02:00:00`;
+           `&train_status=passenger&type=arrival%2Cdeparture&to_offset=PT01:00:00`;
   }
 
   function timetableUrl(appId, appKey, type) {
@@ -447,7 +447,7 @@
     const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     return `https://transportapi.com/v3/uk/train/station/${STATION}/${date}/${time}/timetable.json` +
            `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
-           `&train_status=passenger&type=${type}&to_offset=PT02:00:00`;
+           `&train_status=passenger&type=${type}&to_offset=PT01:00:00`;
   }
 
   async function fetchTrains() {

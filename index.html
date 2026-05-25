@@ -354,7 +354,7 @@
 
   <footer>
     Data: Transport API &bull; Barriers estimated ±2&thinsp;min around scheduled time<br>
-    Auto-refreshes every 60 seconds &bull; Not for safety-critical use
+    Auto-refreshes every 3 minutes &bull; Not for safety-critical use
   </footer>
 </div>
 
@@ -752,7 +752,7 @@
       document.getElementById('status-label').textContent = 'Data unavailable';
     }
     clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(refresh, 60_000);
+    refreshTimer = setTimeout(refresh, 3 * 60_000);
   }
 
   // ── Boot ───────────────────────────────────────────────────────────────────

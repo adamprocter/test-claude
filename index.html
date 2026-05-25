@@ -435,26 +435,57 @@
   }
 
   // ── API ────────────────────────────────────────────────────────────────────
-  function buildUrl(appId, appKey) {
+  function liveUrl(appId, appKey) {
     return `https://transportapi.com/v3/uk/train/station/${STATION}/live.json` +
            `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
            `&train_status=passenger&type=arrival%2Cdeparture&to_offset=PT02:00:00`;
   }
 
+  function timetableUrl(appId, appKey, type) {
+    const now  = new Date();
+    const date = now.toISOString().slice(0, 10);
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    return `https://transportapi.com/v3/uk/train/station/${STATION}/${date}/${time}/timetable.json` +
+           `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
+           `&train_status=passenger&type=${type}&to_offset=PT02:00:00`;
+  }
+
   async function fetchTrains() {
     const { appId, appKey } = getCredentials();
-    const res = await fetch(buildUrl(appId, appKey));
-    if (res.status === 403) throw new Error('API credentials rejected — use "Change API keys" to update them.');
-    if (!res.ok) throw new Error(`Transport API returned ${res.status}`);
-    const data = await res.json();
 
-    // Capture diagnostics before any filtering
-    const rawDeps = (data.departures?.all || []).length;
-    const rawArrs = (data.arrivals?.all   || []).length;
+    // 1. Try the live board first
+    const liveRes = await fetch(liveUrl(appId, appKey));
+    if (liveRes.status === 403) throw new Error('API credentials rejected — use "Change API keys" to update them.');
+    if (!liveRes.ok) throw new Error(`Transport API returned ${liveRes.status}`);
+    const liveData = await liveRes.json();
+
+    let combined = liveData;
+    let source   = 'live';
+
+    // 2. Live board empty for this station — fall back to scheduled timetable
+    const liveCount = (liveData.departures?.all || []).length + (liveData.arrivals?.all || []).length;
+    if (liveCount === 0) {
+      const [depRes, arrRes] = await Promise.all([
+        fetch(timetableUrl(appId, appKey, 'departure')),
+        fetch(timetableUrl(appId, appKey, 'arrival')),
+      ]);
+      const depData = depRes.ok ? await depRes.json() : {};
+      const arrData = arrRes.ok ? await arrRes.json() : {};
+      combined = {
+        station_name: depData.station_name || arrData.station_name || liveData.station_name,
+        departures:   depData.departures   || { all: [] },
+        arrivals:     arrData.arrivals     || { all: [] },
+      };
+      source = 'timetable';
+    }
+
+    const rawDeps = (combined.departures?.all || []).length;
+    const rawArrs = (combined.arrivals?.all   || []).length;
     window._apiDiag = {
-      stationName: data.station_name || data.name || '?',
+      stationName: combined.station_name || '?',
       rawDeps,
       rawArrs,
+      source,
     };
 
     const events = [];
@@ -463,6 +494,7 @@
       for (const svc of (services || [])) {
         const aimedStr    = type === 'departure' ? svc.aimed_departure_time    : svc.aimed_arrival_time;
         const expectedStr = type === 'departure' ? svc.expected_departure_time : svc.expected_arrival_time;
+        // For timetable responses there may be no expected time — fall back to aimed
         const useStr = (expectedStr && expectedStr !== 'On time' && expectedStr !== 'Cancelled' && /^\d{2}:\d{2}$/.test(expectedStr))
           ? expectedStr : aimedStr;
         const trainTime = parseTime(useStr);
@@ -475,8 +507,8 @@
       }
     }
 
-    parseServices(data.departures?.all, 'departure');
-    parseServices(data.arrivals?.all,   'arrival');
+    parseServices(combined.departures?.all, 'departure');
+    parseServices(combined.arrivals?.all,   'arrival');
 
     // Deduplicate by minute + endpoint
     const seen   = new Set();
@@ -711,8 +743,8 @@
       const rawTotal = (diag.rawDeps || 0) + (diag.rawArrs || 0);
       document.getElementById('last-updated').textContent =
         `Updated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` +
-        ` · ${trainEvents.length} parsed · ${rawTotal} raw from API` +
-        (diag.stationName && diag.stationName !== '?' ? ` · Station: ${diag.stationName}` : ` · Station code: ${STATION} (unrecognised?)`);
+        ` · ${trainEvents.length} parsed · ${rawTotal} raw (${diag.source || '?'})` +
+        (diag.stationName && diag.stationName !== '?' ? ` · ${diag.stationName}` : ` · code ${STATION} unrecognised?`);
       updateUI();
     } catch (err) {
       errEl.style.display = 'block';

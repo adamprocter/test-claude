@@ -337,9 +337,8 @@
       <div id="timeline-ticks"></div>
     </div>
 
-    <div id="closures-list">
-      <div id="no-trains-msg">Loading train data…</div>
-    </div>
+    <div id="no-trains-msg">Loading train data…</div>
+    <div id="closures-list"></div>
   </div>
 
   <div id="error-msg"></div>
@@ -567,6 +566,7 @@
     const horizon = now + TIMELINE_MINS * 60 * 1000;
     const list    = document.getElementById('closures-list');
     const noMsg   = document.getElementById('no-trains-msg');
+    if (!list || !noMsg) return;
 
     // Include events that are active or will start within the hour
     const visible = annotated.filter(e =>
@@ -576,14 +576,15 @@
     );
 
     if (visible.length === 0) {
-      // Check if there are trains beyond the hour
       const later = annotated.filter(e => !e.cancelled && e.phase !== 'open');
       list.innerHTML = '';
       noMsg.style.display = 'block';
-      if (later.length > 0) {
-        noMsg.textContent = `No closures in the next hour — next train at ${fmtTime(later[0].trainTime)}`;
+      if (annotated.length === 0) {
+        noMsg.textContent = 'No train data loaded yet — fetching…';
+      } else if (later.length > 0) {
+        noMsg.textContent = `No closures in the next hour — next train at ${fmtTime(later[0].trainTime)} (${later.length} train${later.length > 1 ? 's' : ''} loaded)`;
       } else {
-        noMsg.textContent = 'No further trains in the loaded data — will refresh shortly';
+        noMsg.textContent = `All ${annotated.length} loaded train${annotated.length > 1 ? 's' : ''} have passed — refreshing shortly`;
       }
       return;
     }
@@ -680,7 +681,7 @@
   function tickClock() {
     document.getElementById('clock').textContent =
       new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    updateUI();
+    try { updateUI(); } catch (e) { console.error('updateUI error:', e); }
   }
 
   function updateUI() {
@@ -698,7 +699,7 @@
     try {
       trainEvents = await fetchTrains();
       document.getElementById('last-updated').textContent =
-        'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        `Updated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · ${trainEvents.length} service${trainEvents.length !== 1 ? 's' : ''} loaded`;
       updateUI();
     } catch (err) {
       errEl.style.display = 'block';

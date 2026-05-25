@@ -448,6 +448,15 @@
     if (!res.ok) throw new Error(`Transport API returned ${res.status}`);
     const data = await res.json();
 
+    // Capture diagnostics before any filtering
+    const rawDeps = (data.departures?.all || []).length;
+    const rawArrs = (data.arrivals?.all   || []).length;
+    window._apiDiag = {
+      stationName: data.station_name || data.name || '?',
+      rawDeps,
+      rawArrs,
+    };
+
     const events = [];
 
     function parseServices(services, type) {
@@ -698,8 +707,12 @@
     errEl.style.display = 'none';
     try {
       trainEvents = await fetchTrains();
+      const diag = window._apiDiag || {};
+      const rawTotal = (diag.rawDeps || 0) + (diag.rawArrs || 0);
       document.getElementById('last-updated').textContent =
-        `Updated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · ${trainEvents.length} service${trainEvents.length !== 1 ? 's' : ''} loaded`;
+        `Updated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` +
+        ` · ${trainEvents.length} parsed · ${rawTotal} raw from API` +
+        (diag.stationName && diag.stationName !== '?' ? ` · Station: ${diag.stationName}` : ` · Station code: ${STATION} (unrecognised?)`);
       updateUI();
     } catch (err) {
       errEl.style.display = 'block';

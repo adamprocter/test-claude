@@ -359,7 +359,7 @@
 </div>
 
 <script>
-  // ── Config ─────────────────────────────────────────────────────────────────
+  // ── Config ──────────────────────────────────────────────────────────────────────────────
   const STATION        = 'TTN';
   const BARRIER_BEFORE = 2 * 60 * 1000;
   const BARRIER_AFTER  = 2 * 60 * 1000;
@@ -371,7 +371,7 @@
   let trainEvents  = [];
   let refreshTimer = null;
 
-  // ── Credentials ────────────────────────────────────────────────────────────
+  // ── Credentials ────────────────────────────────────────────────────────────────────────
   function getCredentials() {
     return {
       appId:  localStorage.getItem(STORAGE_ID)  || '',
@@ -394,7 +394,7 @@
     btn.disabled = true;
     btn.textContent = 'Verifying…';
 
-    fetch(buildUrl(appId, appKey))
+    fetch(liveUrl(appId, appKey))
       .then(r => {
         if (r.status === 403) throw new Error('Invalid credentials — check your App ID and App Key.');
         if (!r.ok) throw new Error(`API returned ${r.status}. Try again shortly.`);
@@ -434,7 +434,7 @@
     refresh();
   }
 
-  // ── API ────────────────────────────────────────────────────────────────────
+  // ── API ──────────────────────────────────────────────────────────────────────────────
   function liveUrl(appId, appKey) {
     return `https://transportapi.com/v3/uk/train/station/${STATION}/live.json` +
            `?app_id=${encodeURIComponent(appId)}&app_key=${encodeURIComponent(appKey)}` +
@@ -524,7 +524,7 @@
     return unique.filter(e => e.trainTime.getTime() + BARRIER_AFTER > now);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────────────────────────
   function parseTime(hhmm) {
     if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return null;
     const [h, m] = hhmm.split(':').map(Number);
@@ -562,7 +562,7 @@
     });
   }
 
-  // ── Timeline render ────────────────────────────────────────────────────────
+  // ── Timeline render ──────────────────────────────────────────────────────────────────
   function renderTimeline(annotated) {
     const now     = Date.now();
     const endMs   = now + TIMELINE_MINS * 60 * 1000;
@@ -601,7 +601,7 @@
     }
   }
 
-  // ── Closures list render ───────────────────────────────────────────────────
+  // ── Closures list render ─────────────────────────────────────────────────────────────────
   function renderClosuresList(annotated) {
     const now     = Date.now();
     const horizon = now + TIMELINE_MINS * 60 * 1000;
@@ -652,7 +652,7 @@
     }
   }
 
-  // ── Status banner ──────────────────────────────────────────────────────────
+  // ── Status banner ──────────────────────────────────────────────────────────────────
   function renderBanner(annotated) {
     const activeClosures = annotated.filter(e => e.phase === 'closed' && !e.cancelled);
     const imminent       = annotated.filter(e => e.phase === 'clear'  && !e.cancelled && e.msUntilClose <= WARN_WINDOW && e.msUntilClose > 0);
@@ -681,7 +681,7 @@
     document.getElementById('status-detail').textContent = detail;
   }
 
-  // ── Train cards ────────────────────────────────────────────────────────────
+  // ── Train cards ────────────────────────────────────────────────────────────────────────
   function renderTrainCards(annotated) {
     const list = document.getElementById('train-list');
     const upcoming = annotated.filter(e => e.phase !== 'open');
@@ -718,7 +718,7 @@
     }
   }
 
-  // ── Main UI update (every second) ─────────────────────────────────────────
+  // ── Main UI update (every second) ─────────────────────────────────────────────────────
   function tickClock() {
     document.getElementById('clock').textContent =
       new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -733,7 +733,7 @@
     renderTrainCards(annotated);
   }
 
-  // ── Fetch + refresh ────────────────────────────────────────────────────────
+  // ── Fetch + refresh ──────────────────────────────────────────────────────────────────────
   async function refresh() {
     const errEl = document.getElementById('error-msg');
     errEl.style.display = 'none';
@@ -755,7 +755,7 @@
     refreshTimer = setTimeout(refresh, 3 * 60_000);
   }
 
-  // ── Boot ───────────────────────────────────────────────────────────────────
+  // ── Boot ─────────────────────────────────────────────────────────────────────────────────
   const { appId, appKey } = getCredentials();
   if (appId && appKey) {
     showApp();

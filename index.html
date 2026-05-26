@@ -394,7 +394,7 @@
     btn.disabled = true;
     btn.textContent = 'Verifying…';
 
-    fetch(buildUrl(appId, appKey))
+    fetch(liveUrl(appId, appKey))
       .then(r => {
         if (r.status === 403) throw new Error('Invalid credentials — check your App ID and App Key.');
         if (!r.ok) throw new Error(`API returned ${r.status}. Try again shortly.`);
